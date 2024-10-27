@@ -56,6 +56,4 @@ class RepNote(private val noteDao: NoteDao) {
         }
     }
 
-    //sdfsd
-
 }
