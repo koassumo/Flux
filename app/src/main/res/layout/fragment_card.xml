@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.card.CardFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/placeholder_bottom">
+
+            <LinearLayout
+                android:id="@+id/progress_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginEnd="16dp">
+
+                <View
+                    android:id="@+id/progress_1"
+                    style="@style/ProgressSquare" />
+
+                <View
+                    android:id="@+id/progress_2"
+                    style="@style/ProgressSquare" />
+
+                <View
+                    android:id="@+id/progress_3"
+                    style="@style/ProgressSquare" />
+
+                <View
+                    android:id="@+id/progress_4"
+                    style="@style/ProgressSquare" />
+
+                <View
+                    android:id="@+id/progress_5"
+                    style="@style/ProgressSquare" />
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_origin"
+                style="@style/txt_common"
+                app:layout_constraintTop_toBottomOf="@+id/progress_container"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_translate"
+                style="@style/txt_common"
+                app:layout_constraintTop_toBottomOf="@+id/text_origin"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_answer"
+                android:text="@string/answer"
+                style="@style/btn_common"
+                app:layout_constraintTop_toBottomOf="@+id/text_translate"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_remember"
+                android:text="@string/remember"
+                style="@style/btn_common"
+                app:layout_constraintTop_toBottomOf="@+id/btn_answer"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btn_dont_remember"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dont_remember"
+                android:text="@string/don_t_remember"
+                style="@style/btn_common"
+                app:layout_constraintTop_toBottomOf="@+id/btn_answer"
+                app:layout_constraintStart_toEndOf="@+id/btn_remember"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Добавляем Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="db"
+        app:layout_anchor="@id/nestedScrollView"
+        app:layout_anchorGravity="bottom|end"
+        app:backgroundTint="@color/black" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

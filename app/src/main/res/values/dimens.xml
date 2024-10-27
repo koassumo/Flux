@@ -1,0 +1,59 @@
+<resources>
+
+    <!-- ************************  Particular  ********************************  -->
+    <dimen name="display_margin_top">16dp</dimen>
+    <dimen name="display_margin_sides">12dp</dimen>
+
+    <dimen name="title_margin_top">20dp</dimen>
+
+    <dimen name="card_small_padding">6dp</dimen>
+    <dimen name="card_medium_padding">12dp</dimen>
+    <dimen name="card_large_padding">20dp</dimen>
+    <dimen name="card_title_top">24dp</dimen>
+    <dimen name="card_title_little_top">10dp</dimen>
+    <dimen name="card_text_under_top">4dp</dimen>
+
+    <dimen name="card_icon_big">42dp</dimen>
+    <dimen name="card_icon_medium">24dp</dimen>
+    <dimen name="card_icon_little">20dp</dimen>
+    <dimen name="icon_padding_medium">2dp</dimen>
+
+    <dimen name="card_radio_padding">12dp</dimen>
+    <dimen name="card_radio_low_padding">0dp</dimen>
+    <dimen name="card_radio_low_padding_sides">16dp</dimen>
+
+    <dimen name="rv_vertical_top">40dp</dimen>
+    <dimen name="rv_vertical_bottom">16dp</dimen>
+    <dimen name="rv_vertical_space">10dp</dimen>
+    <dimen name="rv_horizontal_space">8dp</dimen>
+
+    <dimen name="card_title_size">20sp</dimen>
+    <dimen name="card_margin_top">8dp</dimen>
+    <dimen name="card_margin_start_value">4dp</dimen>
+
+    <dimen name="fab_size">32dp</dimen>
+    <dimen name="fab_margin_bottom">80dp</dimen>
+    <dimen name="fab_margin_end">24dp</dimen>
+
+    <!-- ************************  Text  ********************************  -->
+    <dimen name="txt_small_margin_top">4dp</dimen>
+
+    <dimen name="value_margin_start">4dp</dimen>
+
+    <dimen name="text_size_appbar">20sp</dimen>
+    <dimen name="text_size_banner">32sp</dimen>
+    <dimen name="text_size_title">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_normal_plus">16sp</dimen>
+    <dimen name="text_size_normal">12sp</dimen>
+    <dimen name="text_size_small">10sp</dimen>
+
+    <!-- ***********************  Others  ********************************  -->
+
+    <dimen name="placeholder_bottom">300dp</dimen>
+
+    <dimen name="progress_square_width">24dp</dimen>
+    <dimen name="progress_square_height">24dp</dimen>
+    <dimen name="progress_square_margin_start">8dp</dimen>
+
+</resources>

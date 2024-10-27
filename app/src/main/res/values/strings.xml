@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FluxCard</string>
+    <string name="txt_placeholder">... waiting text</string>
+    <string name="answer">Answer</string>
+    <string name="remember">Remember</string>
+    <string name="don_t_remember">Don\'t Remember</string>
+</resources>
