@@ -1,10 +1,7 @@
 package com.igo.fluxcard.ui.card
 
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
-import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
@@ -13,11 +10,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
-import com.igo.fluxcard.model.entity.Note
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CardFragment : Fragment() {
 
@@ -35,6 +27,8 @@ class CardFragment : Fragment() {
         fun newInstance() = CardFragment()
     }
 
+    var isRemembered = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,7 +41,6 @@ class CardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         // Наблюдаем за изменениями данных в ViewModel
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
             // По умолчанию скрываем перевод
@@ -56,6 +49,22 @@ class CardFragment : Fragment() {
             binding.textTranslate.text = note.translate
             updateProgressSquares(note.correctStreak)
             binding.btnAnswer.isEnabled = true
+            binding.btnRemember.isEnabled = true
+            binding.btnRemember.alpha = 1f
+            binding.btnDontRemember.isEnabled = true
+            binding.btnDontRemember.alpha = 1f
+            //binding.btnNext.isEnabled = false
+
+            isRemembered = false
+            binding.btnRemember.setOnClickListener {
+                isRemembered = true
+                updateRememberedBtnClick()
+            }
+            binding.btnDontRemember.setOnClickListener {
+                isRemembered = false
+                updateRememberedBtnClick()
+            }
+
         })
 
         binding.btnAnswer.setOnClickListener {
@@ -63,12 +72,28 @@ class CardFragment : Fragment() {
             binding.btnAnswer.isEnabled = false
         }
 
-        binding.btnRemember.setOnClickListener { rememberBtnClick(true) }
-        binding.btnDontRemember.setOnClickListener { rememberBtnClick(false) }
+        binding.btnNext.setOnClickListener { nextBtnClick() }
 
         binding.fab.setOnClickListener {
             //toastCheckDataBase()
         }
+    }
+
+    private fun updateRememberedBtnClick() {
+        binding.textTranslate.visibility = View.VISIBLE
+        binding.btnAnswer.isEnabled = false
+        binding.btnRemember.setOnClickListener(null)
+        binding.btnDontRemember.setOnClickListener(null)
+
+        if (isRemembered) { // Понижаем прозрачность, чтобы показать, что кнопка была нажата
+            binding.btnDontRemember.isEnabled = false
+            binding.btnRemember.alpha = 0.6f
+        } else {
+            binding.btnRemember.isEnabled = false
+            binding.btnDontRemember.alpha = 0.6f
+        }
+
+        binding.btnNext.isEnabled = true
     }
 
     private fun updateProgressSquares(correctStreak: Int) {
@@ -88,16 +113,17 @@ class CardFragment : Fragment() {
         }
     }
 
-    private fun rememberBtnClick(isRemembered: Boolean) {
-        viewModel.rememberBtnClick(isRemembered)
+    private fun nextBtnClick() {
+        viewModel.nextBtnClick(isRemembered)
     }
 
-    
-    
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+}
 
 
 //    private fun toastCheckDataBase() {
@@ -128,4 +154,4 @@ class CardFragment : Fragment() {
 //            }
 //        }
 //    }
-}
+

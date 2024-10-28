@@ -88,7 +88,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Обработка нажатия кнопки "Запомнил" или "Не запомнил"
-    fun rememberBtnClick(isRemembered: Boolean) {
+    fun nextBtnClick(isRemembered: Boolean) {
         if (isRemembered) {
             note.value?.let { currentNote ->
                 // 1. Создаем копию текущей заметки
