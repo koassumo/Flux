@@ -11,7 +11,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
+import com.igo.fluxcard.model.entity.Note
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,47 +47,43 @@ class CardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // По умолчанию скрываем перевод
-        binding.textTranslate.visibility = View.INVISIBLE
 
         // Наблюдаем за изменениями данных в ViewModel
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
+            // По умолчанию скрываем перевод
+            binding.textTranslate.visibility = View.INVISIBLE
             binding.textOrigin.text = note.origin
             binding.textTranslate.text = note.translate
+            updateProgressSquares(note.correctStreak)
+            binding.btnAnswer.isEnabled = true
         })
 
-        // Показываем перевод при нажатии на кнопку "Answer"
         binding.btnAnswer.setOnClickListener {
             binding.textTranslate.visibility = View.VISIBLE
+            binding.btnAnswer.isEnabled = false
         }
 
-        // Обрабатываем нажатие кнопок "Remember" и "Not Remember"
         binding.btnRemember.setOnClickListener { rememberBtnClick(true) }
         binding.btnDontRemember.setOnClickListener { rememberBtnClick(false) }
 
-        // Обрабатываем нажатие на FAB для инспекции базы данных
         binding.fab.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
-                val notes = viewModel.noteList.value ?: emptyList()
-                withContext(Dispatchers.Main) {
-                    val message = if (notes.isNotEmpty()) {
-                        notes.joinToString(separator = "\n\n") {
-                            "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
-                        }
-                    } else {
-                        "База данных пуста"
-                    }
-                    val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG * 55) // Увеличиваем время отображения тоста в 5 раз
-                    val textView = TextView(requireContext()).apply {
-                        text = message
-                        textSize = 8f // Уменьшаем размер шрифта в два раза
-                        gravity = Gravity.CENTER
-                        setPadding(16, 16, 16, 16)
-                    }
-                    toast.view = textView
-                    toast.setGravity(Gravity.FILL, 0, 0)
-                    toast.show()
-                }
+            //toastCheckDataBase()
+        }
+    }
+
+    private fun updateProgressSquares(correctStreak: Int) {
+        val progressViews = listOf(
+            binding.progress1,
+            binding.progress2,
+            binding.progress3,
+            binding.progress4,
+            binding.progress5
+        )
+        progressViews.forEachIndexed { index, view ->
+            if (index < correctStreak) {
+                view.setBackgroundResource(R.drawable.progress_square_filled)
+            } else {
+                view.setBackgroundResource(R.drawable.progress_square_empty)
             }
         }
     }
@@ -94,8 +92,40 @@ class CardFragment : Fragment() {
         viewModel.rememberBtnClick(isRemembered)
     }
 
+    
+    
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+
+//    private fun toastCheckDataBase() {
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val notes = viewModel.noteList.value ?: emptyList()
+//            withContext(Dispatchers.Main) {
+//                val message = if (notes.isNotEmpty()) {
+//                    notes.joinToString(separator = "\n\n") {
+//                        "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
+//                    }
+//                } else {
+//                    "База данных пуста"
+//                }
+//                val toast = Toast.makeText(
+//                    requireContext(),
+//                    message,
+//                    Toast.LENGTH_LONG * 55
+//                ) // Увеличиваем время отображения тоста в 5 раз
+//                val textView = TextView(requireContext()).apply {
+//                    text = message
+//                    textSize = 8f // Уменьшаем размер шрифта в два раза
+//                    gravity = Gravity.CENTER
+//                    setPadding(16, 16, 16, 16)
+//                }
+//                toast.view = textView
+//                toast.setGravity(Gravity.FILL, 0, 0)
+//                toast.show()
+//            }
+//        }
+//    }
 }
