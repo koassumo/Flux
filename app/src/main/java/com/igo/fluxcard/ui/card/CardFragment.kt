@@ -1,21 +1,19 @@
 package com.igo.fluxcard.ui.card
 
 import android.os.Bundle
-import android.view.Gravity
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
-import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CardFragment : Fragment() {
 
@@ -33,6 +31,8 @@ class CardFragment : Fragment() {
         fun newInstance() = CardFragment()
     }
 
+    var isRemembered = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -44,58 +44,145 @@ class CardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // По умолчанию скрываем перевод
-        binding.textTranslate.visibility = View.INVISIBLE
+        binding.webView.visibility = View.INVISIBLE // Скрываем WebView вначале
+        binding.webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            loadWithOverviewMode = true
+            useWideViewPort = true
+        }
+        binding.webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                // Прокрутка вниз, чтобы игнорировать шапку
+                binding.webView.scrollTo(0, 900) // Значение 500 можно настроить в зависимости от страницы
+                // Добавляем плавное появление после скроллинга
+                Handler(Looper.getMainLooper()).postDelayed({
+                    // Устанавливаем видимость и начинаем анимацию плавного появления
+                    binding.webView.alpha = 0f
+                    binding.webView.animate()
+                        .alpha(0.3f)
+                        .setDuration(1000) // Длительность анимации в миллисекундах
+                        .start()
+                    binding.webView.visibility = View.VISIBLE
+                }, 1000) // Задержка в 500 мс, чтобы завершить прокрутку
+            }
+        }
 
         // Наблюдаем за изменениями данных в ViewModel
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
+            binding.webView.visibility = View.INVISIBLE // Скрываем WebView вначале
+            // По умолчанию скрываем перевод
+            binding.textTranslate.visibility = View.INVISIBLE
             binding.textOrigin.text = note.origin
             binding.textTranslate.text = note.translate
+            updateProgressSquares(note.correctStreak)
+            binding.btnAnswer.isEnabled = true
+            binding.btnRemember.isEnabled = true
+            binding.btnRemember.alpha = 1f
+            binding.btnDontRemember.isEnabled = true
+            binding.btnDontRemember.alpha = 1f
+            //binding.btnNext.isEnabled = false
+
+            isRemembered = false
+            binding.btnRemember.setOnClickListener {
+                isRemembered = true
+                updateRememberedBtnClick()
+            }
+            binding.btnDontRemember.setOnClickListener {
+                isRemembered = false
+                updateRememberedBtnClick()
+            }
+
         })
 
-        // Показываем перевод при нажатии на кнопку "Answer"
         binding.btnAnswer.setOnClickListener {
             binding.textTranslate.visibility = View.VISIBLE
+//            binding.webView.loadUrl("https://www.google.com/search?tbm=isch&q=" + binding.textOrigin.text)
+            binding.webView.loadUrl("https://yandex.com/images/search?text=" + binding.textOrigin.text)
+            binding.btnAnswer.isEnabled = false
         }
 
-        // Обрабатываем нажатие кнопок "Remember" и "Not Remember"
-        binding.btnRemember.setOnClickListener { rememberBtnClick(true) }
-        binding.btnDontRemember.setOnClickListener { rememberBtnClick(false) }
+        binding.btnNext.setOnClickListener { nextBtnClick() }
 
-        // Обрабатываем нажатие на FAB для инспекции базы данных
         binding.fab.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
-                val notes = viewModel.noteList.value ?: emptyList()
-                withContext(Dispatchers.Main) {
-                    val message = if (notes.isNotEmpty()) {
-                        notes.joinToString(separator = "\n\n") {
-                            "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
-                        }
-                    } else {
-                        "База данных пуста"
-                    }
-                    val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG * 55) // Увеличиваем время отображения тоста в 5 раз
-                    val textView = TextView(requireContext()).apply {
-                        text = message
-                        textSize = 8f // Уменьшаем размер шрифта в два раза
-                        gravity = Gravity.CENTER
-                        setPadding(16, 16, 16, 16)
-                    }
-                    toast.view = textView
-                    toast.setGravity(Gravity.FILL, 0, 0)
-                    toast.show()
-                }
+            //toastCheckDataBase()
+        }
+    }
+
+    private fun updateRememberedBtnClick() {
+        binding.textTranslate.visibility = View.VISIBLE
+        binding.btnAnswer.isEnabled = false
+        binding.btnRemember.setOnClickListener(null)
+        binding.btnDontRemember.setOnClickListener(null)
+
+        if (isRemembered) { // Понижаем прозрачность, чтобы показать, что кнопка была нажата
+            binding.btnDontRemember.isEnabled = false
+            binding.btnRemember.alpha = 0.6f
+        } else {
+            binding.btnRemember.isEnabled = false
+            binding.btnDontRemember.alpha = 0.6f
+        }
+
+        binding.btnNext.isEnabled = true
+    }
+
+    private fun updateProgressSquares(correctStreak: Int) {
+        val progressViews = listOf(
+            binding.progress1,
+            binding.progress2,
+            binding.progress3,
+            binding.progress4,
+            binding.progress5
+        )
+        progressViews.forEachIndexed { index, view ->
+            if (index < correctStreak) {
+                view.setBackgroundResource(R.drawable.progress_square_filled)
+            } else {
+                view.setBackgroundResource(R.drawable.progress_square_empty)
             }
         }
     }
 
-    private fun rememberBtnClick(isRemembered: Boolean) {
-        viewModel.rememberBtnClick(isRemembered)
+    private fun nextBtnClick() {
+        viewModel.nextBtnClick(isRemembered)
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
 }
+
+
+//    private fun toastCheckDataBase() {
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val notes = viewModel.noteList.value ?: emptyList()
+//            withContext(Dispatchers.Main) {
+//                val message = if (notes.isNotEmpty()) {
+//                    notes.joinToString(separator = "\n\n") {
+//                        "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
+//                    }
+//                } else {
+//                    "База данных пуста"
+//                }
+//                val toast = Toast.makeText(
+//                    requireContext(),
+//                    message,
+//                    Toast.LENGTH_LONG * 55
+//                ) // Увеличиваем время отображения тоста в 5 раз
+//                val textView = TextView(requireContext()).apply {
+//                    text = message
+//                    textSize = 8f // Уменьшаем размер шрифта в два раза
+//                    gravity = Gravity.CENTER
+//                    setPadding(16, 16, 16, 16)
+//                }
+//                toast.view = textView
+//                toast.setGravity(Gravity.FILL, 0, 0)
+//                toast.show()
+//            }
+//        }
+//    }
+

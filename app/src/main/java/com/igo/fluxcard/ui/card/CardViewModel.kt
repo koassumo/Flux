@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class CardViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -39,9 +40,16 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         // Загружаем все заметки из базы данных один раз при инициализации
         viewModelScope.launch {
             Log.d("CardViewModel", "Загрузка фейковых данных в базу данных")
-            repository.insertFakeNotes() // Добавим фейковые данные в базу
+            //repository.insertFakeNotes() // Добавим фейковые данные в базу
+            repository.loadNotesFromFirebase() // Добавим фейковые данные в базу
             restartCycle() // Запускаем цикл обработки заметок
         }
+    }
+
+    // Метод для перезапуска цикла обработки заметок
+    private suspend fun restartCycle() {
+        loadAllNotes() // Загружаем все заметки заново
+        runNoteCycle() // Запускаем основной цикл обработки
     }
 
     // Загрузка всех заметок из БД
@@ -67,7 +75,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         // Ждём завершения обработки текущей заметки (пользователь нажимает кнопку)
     }
 
-    // Загрузка текущей заметки по индексу
+    // Вывод текущей заметки по индексу на экран
     private fun loadCurrentNote() {
         noteList.value?.let {
             if (currentNoteIndex in it.indices) {
@@ -80,23 +88,28 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Обработка нажатия кнопки "Запомнил" или "Не запомнил"
-    fun rememberBtnClick(isRemembered: Boolean) {
+    fun nextBtnClick(isRemembered: Boolean) {
         if (isRemembered) {
             note.value?.let { currentNote ->
                 // 1. Создаем копию текущей заметки
-                val noteCopy = currentNote.copy(correctStreak = currentNote.correctStreak + 1)
-
+                val nextShowTime = getNextShowTime(currentNote.correctStreak)
+                val noteCopy = currentNote.copy(correctStreak = currentNote.correctStreak + 1, showFirstTimestamp = nextShowTime)
                 // 2. Запускаем запись в базу данных в отдельной корутине с использованием ioScope
                 ioScope.launch {
                     Log.d("CardViewModel", "Обновлена заметка: ${noteCopy.id}, Запомнена: $isRemembered")
                     repository.insertNote(noteCopy)
+                    // После записи продолжаем обработку, иначе не успевает записать последнюю в цикле
+                    withContext(Dispatchers.Main) {
+                        moveToNextNote()
+                    }
                 }
             }
         } else {
             // Пока ничего не делаем, оставлено для будущей обработки
+            // 3. К следующей заметке, не дожидаясь отработки корутины
+            moveToNextNote()
         }
-        // 3. К следующей заметке, не дожидаясь отработки корутины
-        moveToNextNote()
+
     }
 
     // Переход к следующей заметке
@@ -114,9 +127,19 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Метод для перезапуска цикла обработки заметок
-    private suspend fun restartCycle() {
-        loadAllNotes() // Загружаем все заметки заново
-        runNoteCycle() // Запускаем основной цикл обработки
+    // Функция для определения времени следующего показа заметки
+    fun getNextShowTime(correctStreak: Int): Long {
+        val currentTime = System.currentTimeMillis()
+        return when (correctStreak) {
+            0 -> currentTime + TimeUnit.SECONDS.toMillis(5)
+            1 -> currentTime + TimeUnit.SECONDS.toMillis(15)
+            2 -> currentTime + TimeUnit.MINUTES.toMillis(10)
+            3 -> currentTime + TimeUnit.HOURS.toMillis(1)
+            4 -> currentTime + TimeUnit.DAYS.toMillis(1)
+            5 -> currentTime + TimeUnit.DAYS.toMillis(30)
+            else -> currentTime + TimeUnit.DAYS.toMillis(365)
+        }
     }
+
+
 }

@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
     //id("com.google.devtools.ksp")
 }
 
@@ -66,4 +67,19 @@ dependencies {
     // Корутинные зависимости
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
+    implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
+
+    // Gson для преобразования JSON в объекты
+    implementation("com.google.code.gson:gson:2.9.0")
+
 }
