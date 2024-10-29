@@ -1,3 +1,4 @@
+// apikey в apikey.proporties в формате splash_apikey=Dz......cwo (без ковычек!)
 // for api_key 1 из 4
 import java.util.Properties
 
@@ -28,7 +29,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // for api_key 3 из 4
-        buildConfigField("String", "SPLASH_API_KEY", "\"${apikeyProperties["splash_apikey"]}\"")
+        buildConfigField("String", "SPLASH_API_KEY", "\"${apikeyProperties.getProperty("splash_apikey")}\"")
     }
 
     // for api_key 4 из 4

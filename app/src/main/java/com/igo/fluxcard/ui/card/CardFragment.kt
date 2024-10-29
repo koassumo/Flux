@@ -15,6 +15,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
 
+import com.igo.fluxcard.BuildConfig
+
+
 class CardFragment : Fragment() {
 
     // Используем by viewModels для упрощенного создания ViewModel
@@ -30,6 +33,8 @@ class CardFragment : Fragment() {
     companion object {
         fun newInstance() = CardFragment()
     }
+
+    val apiKey = BuildConfig.SPLASH_API_KEY
 
     var isRemembered = false
 
