@@ -105,9 +105,6 @@ class CardFragment : Fragment() {
 
         binding.btnNext.setOnClickListener { nextBtnClick() }
 
-        binding.fab.setOnClickListener {
-            //toastCheckDataBase()
-        }
     }
 
     private fun updateRememberedBtnClick() {
@@ -156,33 +153,4 @@ class CardFragment : Fragment() {
 
 }
 
-
-//    private fun toastCheckDataBase() {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val notes = viewModel.noteList.value ?: emptyList()
-//            withContext(Dispatchers.Main) {
-//                val message = if (notes.isNotEmpty()) {
-//                    notes.joinToString(separator = "\n\n") {
-//                        "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
-//                    }
-//                } else {
-//                    "База данных пуста"
-//                }
-//                val toast = Toast.makeText(
-//                    requireContext(),
-//                    message,
-//                    Toast.LENGTH_LONG * 55
-//                ) // Увеличиваем время отображения тоста в 5 раз
-//                val textView = TextView(requireContext()).apply {
-//                    text = message
-//                    textSize = 8f // Уменьшаем размер шрифта в два раза
-//                    gravity = Gravity.CENTER
-//                    setPadding(16, 16, 16, 16)
-//                }
-//                toast.view = textView
-//                toast.setGravity(Gravity.FILL, 0, 0)
-//                toast.show()
-//            }
-//        }
-//    }
 

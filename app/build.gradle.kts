@@ -1,3 +1,6 @@
+// for api_key 1 из 4
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +8,11 @@ plugins {
     id("com.google.gms.google-services")
     //id("com.google.devtools.ksp")
 }
+
+// for api_key 2 из 4
+val apikeyPropertiesFile = rootProject.file("apikey.properties")
+val apikeyProperties = Properties()
+apikeyProperties.load(apikeyPropertiesFile.inputStream())
 
 android {
     namespace = "com.igo.fluxcard"
@@ -18,6 +26,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // for api_key 3 из 4
+        buildConfigField("String", "SPLASH_API_KEY", "\"${apikeyProperties["splash_apikey"]}\"")
+    }
+
+    // for api_key 4 из 4
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -81,5 +97,8 @@ dependencies {
 
     // Gson для преобразования JSON в объекты
     implementation("com.google.code.gson:gson:2.9.0")
+
+    implementation("io.coil-kt:coil:2.1.0")
+
 
 }
