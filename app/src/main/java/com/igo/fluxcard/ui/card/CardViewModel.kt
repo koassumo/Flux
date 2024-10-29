@@ -1,5 +1,6 @@
 package com.igo.fluxcard.ui.card
 
+import RepImage
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit
 class CardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: RepNote
+    private val imageRepository : RepImage
 
     // Заметка, которая будет отображаться в текущий момент
     val note = MutableLiveData<Note>()
@@ -28,6 +30,8 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     // Собственный IO Scope для работы с базой данных
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
+    val imageUrl = MutableLiveData<String?>()
+
     init {
         // ViewModel использует параметр Application,
         // чтобы получить экземпляр БД через AppDatabase.getDatabase(application).
@@ -36,6 +40,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         val noteDao = AppDatabase.getDatabase(application).noteDao()
         // создаем Репу и отдаем ей noteDao, пусть она ковыряется с работой с БД
         repository = RepNote(noteDao)
+        imageRepository = RepImage()
 
         // Загружаем все заметки из базы данных один раз при инициализации
         viewModelScope.launch {
@@ -140,6 +145,18 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             else -> currentTime + TimeUnit.DAYS.toMillis(365)
         }
     }
+
+//    fun searchImage(query: String) {
+//        viewModelScope.launch {
+//            val imageResult = imageRepository.getImage(query)
+//            if (imageResult != null) {
+//                imageUrl.value = imageResult.results.firstOrNull()?.urls?.regular
+//            } else {
+//                Log.d("CardViewModel", "Не удалось получить изображение")
+//                imageUrl.value = null
+//            }
+//        }
+//    }
 
 
 }

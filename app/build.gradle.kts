@@ -1,4 +1,5 @@
 // apikey в apikey.proporties в формате splash_apikey=Dz......cwo (без ковычек!)
+// uses-permission в манифест
 // for api_key 1 из 4
 import java.util.Properties
 
@@ -87,8 +88,6 @@ dependencies {
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-
-
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
@@ -100,6 +99,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.9.0")
 
     implementation("io.coil-kt:coil:2.1.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.moshi:moshi:1.12.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
 
 
 }
