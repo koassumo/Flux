@@ -1,5 +1,6 @@
 package com.igo.fluxcard.ui.card
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import coil.Coil
 import coil.load
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
@@ -71,26 +73,23 @@ class CardFragment : Fragment() {
 
         })
 
-//        viewModel.imageUrl.observe(viewLifecycleOwner) { imageUrl ->
-//            if (imageUrl != null) {
-//                // Используем Coil для загрузки изображения
-//                context?.let {
-//                    Coil.load(it, imageUrl) {
-//                        target { drawable ->
-//                            imageView.setImageDrawable(drawable)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-
-
-        binding.btnAnswer.setOnClickListener {
-            binding.textTranslate.visibility = View.VISIBLE
-            binding.imageView.load("https://images.unsplash.com/photo-1695942420432-9450d86964c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2Njk5NjR8MHwxfHNlYXJjaHwxfHwlRTIlODAlQTYlMjBpbiUyMHRoaXMlMjByZWdhcmQufGVufDB8fHx8MTczMDE5Mjk2NHww&ixlib=rb-4.0.3&q=80&w=1080")
-            binding.btnAnswer.isEnabled = false
+        viewModel.imageUrl.observe(viewLifecycleOwner) { imageUrl ->
+            if (imageUrl != null) {
+                // Используем Coil для загрузки изображения напрямую на imageView
+                binding.imageView.load(imageUrl)
+            } else {
+                Log.d("CardFragment", "Не удалось загрузить изображение")
+            }
         }
+
+
+
+
+//        binding.btnAnswer.setOnClickListener {
+//            binding.textTranslate.visibility = View.VISIBLE
+//            binding.imageView.load("https://images.unsplash.com/photo-1695942420432-9450d86964c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2Njk5NjR8MHwxfHNlYXJjaHwxfHwlRTIlODAlQTYlMjBpbiUyMHRoaXMlMjByZWdhcmQufGVufDB8fHx8MTczMDE5Mjk2NHww&ixlib=rb-4.0.3&q=80&w=1080")
+//            binding.btnAnswer.isEnabled = false
+//        }
 
         binding.btnNext.setOnClickListener { nextBtnClick() }
 

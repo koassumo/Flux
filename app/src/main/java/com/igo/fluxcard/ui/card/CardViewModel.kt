@@ -55,6 +55,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun restartCycle() {
         loadAllNotes() // Загружаем все заметки заново
         runNoteCycle() // Запускаем основной цикл обработки
+        searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
     }
 
     // Загрузка всех заметок из БД
@@ -86,6 +87,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             if (currentNoteIndex in it.indices) {
                 note.value = it[currentNoteIndex]
                 Log.d("CardViewModel", "Загрузка заметки с индексом: $currentNoteIndex")
+                searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
             } else {
                 Log.d("CardViewModel", "Индекс вне диапазона: $currentNoteIndex")
             }
@@ -146,17 +148,17 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-//    fun searchImage(query: String) {
-//        viewModelScope.launch {
-//            val imageResult = imageRepository.getImage(query)
-//            if (imageResult != null) {
-//                imageUrl.value = imageResult.results.firstOrNull()?.urls?.regular
-//            } else {
-//                Log.d("CardViewModel", "Не удалось получить изображение")
-//                imageUrl.value = null
-//            }
-//        }
-//    }
+    fun searchImage(query: String) {
+        viewModelScope.launch {
+            val imageResult = imageRepository.getImage(query)
+            if (imageResult != null) {
+                imageUrl.value = imageResult.urls.regular
+            } else {
+                Log.d("CardViewModel", "Не удалось получить изображение")
+                imageUrl.value = null
+            }
+        }
+    }
 
 
 }
