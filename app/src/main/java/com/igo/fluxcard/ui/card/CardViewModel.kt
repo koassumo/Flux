@@ -18,10 +18,11 @@ import java.util.concurrent.TimeUnit
 class CardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: RepNote
-    private val imageRepository : RepImage
+    private val imageRepository: RepImage
 
     // Заметка, которая будет отображаться в текущий момент
     val note = MutableLiveData<Note>()
+
     // Список всех заметок, загруженных из базы данных
     val noteList = MutableLiveData<List<Note>>()
 
@@ -43,28 +44,33 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         imageRepository = RepImage()
 
         // Загружаем все заметки из базы данных один раз при инициализации
-        viewModelScope.launch {
+        val initVMJob_0 = viewModelScope.launch {
             Log.d("CardViewModel", "Загрузка фейковых данных в базу данных")
-            //repository.insertFakeNotes() // Добавим фейковые данные в базу
-            repository.loadNotesFromFirebase()
-            restartCycle() // Запускаем цикл обработки заметок
+            val loadFireJob_1 = launch {
+                repository.loadNotesFromFirebase()
+            }
+            loadFireJob_1.join()
+            restartCycle()
         }
     }
 
-    // Метод для перезапуска цикла обработки заметок
     private suspend fun restartCycle() {
-        loadAllNotes() // Загружаем все заметки заново
-        runNoteCycle() // Запускаем основной цикл обработки
-        //searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
+        val loadLocalJob_2 = CoroutineScope(Dispatchers.IO).launch {
+            loadAllNotesFromLocal() // Загружаем все заметки заново
+        }
+        loadLocalJob_2.join()
+        runNoteCycle()
     }
 
     // Загрузка всех заметок из БД
-    private suspend fun loadAllNotes() {
+    private suspend fun loadAllNotesFromLocal() {
         val notes = repository.getAllNotes()
         if (notes.isNotEmpty()) {
-            noteList.value = notes
-            currentNoteIndex = 0
-            Log.d("CardViewModel", "Все заметки успешно загружены")
+            withContext(Dispatchers.Main) {//LiveData можно обновить только отсюда
+                noteList.value = notes
+                currentNoteIndex = 0
+                Log.d("CardViewModel", "Все заметки успешно загружены")
+            }
         } else {
             Log.d("CardViewModel", "Нет доступных заметок для загрузки")
         }
@@ -77,7 +83,10 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         displayCurrentNote()
-        Log.d("CardViewModel", "Ожидание действия пользователя для заметки с индексом: $currentNoteIndex")
+        Log.d(
+            "CardViewModel",
+            "Ожидание действия пользователя для заметки с индексом: $currentNoteIndex"
+        )
         // Ждём завершения обработки текущей заметки (пользователь нажимает кнопку)
     }
 
@@ -100,10 +109,16 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
             note.value?.let { currentNote ->
                 // 1. Создаем копию текущей заметки
                 val nextShowTime = getNextShowTime(currentNote.correctStreak)
-                val noteCopy = currentNote.copy(correctStreak = currentNote.correctStreak + 1, showFirstTimestamp = nextShowTime)
+                val noteCopy = currentNote.copy(
+                    correctStreak = currentNote.correctStreak + 1,
+                    showFirstTimestamp = nextShowTime
+                )
                 // 2. Запускаем запись в базу данных в отдельной корутине с использованием ioScope
                 ioScope.launch {
-                    Log.d("CardViewModel", "Обновлена заметка: ${noteCopy.id}, Запомнена: $isRemembered")
+                    Log.d(
+                        "CardViewModel",
+                        "Обновлена заметка: ${noteCopy.id}, Запомнена: $isRemembered"
+                    )
                     repository.insertNote(noteCopy)
                     // После записи продолжаем обработку, иначе не успевает записать последнюю в цикле
                     withContext(Dispatchers.Main) {
