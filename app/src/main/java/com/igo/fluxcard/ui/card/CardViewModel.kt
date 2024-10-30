@@ -46,7 +46,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             Log.d("CardViewModel", "Загрузка фейковых данных в базу данных")
             //repository.insertFakeNotes() // Добавим фейковые данные в базу
-            repository.loadNotesFromFirebase() // Добавим фейковые данные в базу
+            repository.loadNotesFromFirebase()
             restartCycle() // Запускаем цикл обработки заметок
         }
     }
@@ -55,7 +55,7 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun restartCycle() {
         loadAllNotes() // Загружаем все заметки заново
         runNoteCycle() // Запускаем основной цикл обработки
-        searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
+        //searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
     }
 
     // Загрузка всех заметок из БД
@@ -71,23 +71,23 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Основной цикл работы с заметками
-    private fun runNoteCycle() {
+    private suspend fun runNoteCycle() {
         if (noteList.value.isNullOrEmpty()) {
             Log.d("CardViewModel", "Нет доступных заметок для работы")
             return
         }
-        loadCurrentNote() // Загружаем текущую заметку
+        displayCurrentNote()
         Log.d("CardViewModel", "Ожидание действия пользователя для заметки с индексом: $currentNoteIndex")
         // Ждём завершения обработки текущей заметки (пользователь нажимает кнопку)
     }
 
     // Вывод текущей заметки по индексу на экран
-    private fun loadCurrentNote() {
+    private fun displayCurrentNote() {
         noteList.value?.let {
             if (currentNoteIndex in it.indices) {
                 note.value = it[currentNoteIndex]
                 Log.d("CardViewModel", "Загрузка заметки с индексом: $currentNoteIndex")
-                searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
+//                searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
             } else {
                 Log.d("CardViewModel", "Индекс вне диапазона: $currentNoteIndex")
             }
@@ -124,7 +124,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         noteList.value?.let {
             if (currentNoteIndex + 1 < it.size) {
                 currentNoteIndex++
-                runNoteCycle() // Загружаем следующую заметку через основной цикл
+                viewModelScope.launch {
+                    runNoteCycle() // Загружаем следующую заметку через основной цикл
+                }
             } else {
                 Log.d("CardViewModel", "Все заметки просмотрены. Перезапуск цикла.")
                 viewModelScope.launch {

@@ -58,6 +58,12 @@
             </LinearLayout>
 
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_streak"
+                style="@style/txt_common"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/text_origin"
                 style="@style/txt_common"
                 android:maxLines="3"

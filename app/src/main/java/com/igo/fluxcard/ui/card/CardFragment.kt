@@ -49,11 +49,12 @@ class CardFragment : Fragment() {
 
         // Наблюдаем за изменениями данных в ViewModel
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
-            // По умолчанию скрываем перевод
-            binding.textTranslate.visibility = View.INVISIBLE
-            binding.textOrigin.text = note.origin
-            binding.textTranslate.text = note.translate
+            binding.textStreak.text = note.correctStreak.toString()
             updateProgressSquares(note.correctStreak)
+            binding.textOrigin.text = note.origin
+            binding.textTranslate.visibility = View.INVISIBLE
+            binding.textTranslate.text = note.translate
+            binding.imageView.setImageDrawable(null)
             binding.btnAnswer.isEnabled = true
             binding.btnRemember.isEnabled = true
             binding.btnRemember.alpha = 1f
@@ -66,6 +67,14 @@ class CardFragment : Fragment() {
                 isRemembered = true
                 updateRememberedBtnClick()
             }
+
+            binding.btnAnswer.setOnClickListener {
+                binding.textTranslate.visibility = View.VISIBLE
+                binding.btnAnswer.isEnabled = false
+                viewModel.searchImage(note.origin)
+                binding.imageView.visibility = View.VISIBLE
+            }
+
             binding.btnDontRemember.setOnClickListener {
                 isRemembered = false
                 updateRememberedBtnClick()
@@ -82,14 +91,6 @@ class CardFragment : Fragment() {
             }
         }
 
-
-
-
-//        binding.btnAnswer.setOnClickListener {
-//            binding.textTranslate.visibility = View.VISIBLE
-//            binding.imageView.load("https://images.unsplash.com/photo-1695942420432-9450d86964c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2Njk5NjR8MHwxfHNlYXJjaHwxfHwlRTIlODAlQTYlMjBpbiUyMHRoaXMlMjByZWdhcmQufGVufDB8fHx8MTczMDE5Mjk2NHww&ixlib=rb-4.0.3&q=80&w=1080")
-//            binding.btnAnswer.isEnabled = false
-//        }
 
         binding.btnNext.setOnClickListener { nextBtnClick() }
 
