@@ -5,6 +5,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.igo.fluxcard.model.dao.AppDatabase
 import com.igo.fluxcard.model.entity.Note
@@ -14,12 +15,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
 import java.util.concurrent.TimeUnit
 
-class CardViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository: RepNote
+class CardViewModel(
+    private val repository: RepNote,
     private val imageRepository: RepImage
+) : ViewModel(), KoinComponent {
+
 
     // Заметка, которая будет отображаться в текущий момент
     val note = MutableLiveData<Note>()
@@ -38,16 +41,6 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     val imageUrl = MutableLiveData<String?>()
 
     init {
-        // БД и репозитории перенести в Dependency Injection (DI)!!!!
-        // ViewModel использует параметр Application,
-        // чтобы получить экземпляр БД через AppDatabase.getDatabase(application).
-        // Далее, из базы данных (AppDatabase) получаем noteDao() - это объект DAO,
-        // т.е интерфейс, который содержит методы для работы с БД.
-        val noteDao = AppDatabase.getDatabase(application).noteDao()
-        // создаем Репу и отдаем ей noteDao, пусть она ковыряется с работой с БД
-        repository = RepNote(noteDao)
-        imageRepository = RepImage()
-
         // Загружаем все заметки из базы данных один раз при инициализации
         viewModelScope.launch {
             Log.d("CardViewModel", "Загрузка фейковых данных в базу данных")

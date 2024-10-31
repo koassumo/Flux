@@ -8,24 +8,19 @@ import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import coil.load
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
-import com.igo.fluxcard.BuildConfig
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
 
 class CardFragment : Fragment(), TextToSpeech.OnInitListener {
 
 
-    // Используем by viewModels для упрощенного создания ViewModel
-    // Делегат by viewModels() автоматически привязывает ViewModel к Fragment
-    // и следит за жизненным циклом фрагмента
-    private val viewModel: CardViewModel by viewModels {
-        ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
-    }
+    // Используем Koin для внедрения ViewModel
+    private val viewModel: CardViewModel by viewModel()
+
+
 
     private var _binding: FragmentCardBinding? = null
     private val binding get() = _binding!!
@@ -37,7 +32,6 @@ class CardFragment : Fragment(), TextToSpeech.OnInitListener {
     private var isRemembered = false
 
     private var textToSpeech: TextToSpeech? = null
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +49,7 @@ class CardFragment : Fragment(), TextToSpeech.OnInitListener {
         textToSpeech = TextToSpeech(requireContext(), this)
 
         // Наблюдаем за изменениями данных в ViewModel
-        viewModel.note.observe(viewLifecycleOwner, Observer { note ->
+        viewModel.note.observe(viewLifecycleOwner) { note ->
             binding.textStreak.text = note.correctStreak.toString()
             updateProgressSquares(note.correctStreak)
             binding.textOrigin.text = note.origin
@@ -73,7 +67,7 @@ class CardFragment : Fragment(), TextToSpeech.OnInitListener {
 
             speakOut(note.origin)
 
-        })
+        }
 
 
         binding.btnAnswer.setOnClickListener {
