@@ -29,16 +29,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-
-//object RepositoryProvider {
-//    @Volatile
-//    private var repository: RepNote? = null
-//
-//    fun getRepository(context: Context): RepNote {
-//        return repository ?: synchronized(this) {
-//            val instance = RepNote(AppDatabase.getDatabase(context).noteDao())
-//            repository = instance
-//            instance
-//        }
-//    }
-//}

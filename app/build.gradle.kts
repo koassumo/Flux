@@ -1,6 +1,7 @@
 // apikey в apikey.proporties в формате splash_apikey=Dz......cwo (без ковычек!)
 // uses-permission в манифест
 // for api_key 1 из 4
+import com.android.build.api.dsl.Packaging
 import java.util.Properties
 
 plugins {
@@ -30,7 +31,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // for api_key 3 из 4
-        buildConfigField("String", "SPLASH_API_KEY", "\"${apikeyProperties.getProperty("splash_apikey")}\"")
+        buildConfigField(
+            "String",
+            "SPLASH_API_KEY",
+            "\"${apikeyProperties.getProperty("splash_apikey")}\""
+        )
     }
 
     // for api_key 4 из 4
@@ -58,6 +63,7 @@ android {
     viewBinding {
         enable = true
     }
+
 }
 
 dependencies {
@@ -104,7 +110,6 @@ dependencies {
     implementation("com.squareup.moshi:moshi:1.15.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
-    kapt ("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
-
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
 
 }

@@ -1,5 +1,8 @@
 package com.igo.fluxcard.ui.card
+
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
@@ -8,13 +11,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import coil.Coil
 import coil.load
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
 import com.igo.fluxcard.BuildConfig
+import java.util.Locale
 
-class CardFragment : Fragment() {
+class CardFragment : Fragment(), TextToSpeech.OnInitListener {
+
 
     // Используем by viewModels для упрощенного создания ViewModel
     // Делегат by viewModels() автоматически привязывает ViewModel к Fragment
@@ -30,9 +34,10 @@ class CardFragment : Fragment() {
         fun newInstance() = CardFragment()
     }
 
-    val apiKey = BuildConfig.SPLASH_API_KEY
+    private var isRemembered = false
 
-    var isRemembered = false
+    private var textToSpeech: TextToSpeech? = null
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,6 +51,8 @@ class CardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Инициализация TextToSpeech
+        textToSpeech = TextToSpeech(requireContext(), this)
 
         // Наблюдаем за изменениями данных в ViewModel
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
@@ -55,53 +62,53 @@ class CardFragment : Fragment() {
             binding.textTranslate.visibility = View.INVISIBLE
             binding.textTranslate.text = note.translate
             binding.imageView.setImageDrawable(null)
+            binding.imageView.visibility = View.INVISIBLE
             binding.btnAnswer.isEnabled = true
             binding.btnRemember.isEnabled = true
             binding.btnRemember.alpha = 1f
             binding.btnDontRemember.isEnabled = true
             binding.btnDontRemember.alpha = 1f
             //binding.btnNext.isEnabled = false
-
             isRemembered = false
-            binding.btnRemember.setOnClickListener {
-                isRemembered = true
-                updateRememberedBtnClick()
-            }
 
-            binding.btnAnswer.setOnClickListener {
-                binding.textTranslate.visibility = View.VISIBLE
-                binding.btnAnswer.isEnabled = false
-                viewModel.searchImage(note.origin)
-                binding.imageView.visibility = View.VISIBLE
-            }
-
-            binding.btnDontRemember.setOnClickListener {
-                isRemembered = false
-                updateRememberedBtnClick()
-            }
+            speakOut(note.origin)
 
         })
 
+
+        binding.btnAnswer.setOnClickListener {
+            binding.textTranslate.visibility = View.VISIBLE
+            binding.btnAnswer.isEnabled = false
+            viewModel.searchImageUrl()
+            binding.imageView.visibility = View.VISIBLE
+        }
+        binding.btnRemember.setOnClickListener {
+            isRemembered = true
+            updateRememberedBtnClick()
+            viewModel.writeLocalbase(isRemembered)
+        }
+        binding.btnDontRemember.setOnClickListener {
+            isRemembered = false
+            updateRememberedBtnClick()
+            viewModel.writeLocalbase(isRemembered)
+        }
+
+        binding.btnNext.setOnClickListener {
+            viewModel.moveToNextNote()
+        }
+
         viewModel.imageUrl.observe(viewLifecycleOwner) { imageUrl ->
             if (imageUrl != null) {
-                // Используем Coil для загрузки изображения напрямую на imageView
                 binding.imageView.load(imageUrl)
             } else {
                 Log.d("CardFragment", "Не удалось загрузить изображение")
             }
         }
-
-
-        binding.btnNext.setOnClickListener { nextBtnClick() }
-
     }
 
     private fun updateRememberedBtnClick() {
         binding.textTranslate.visibility = View.VISIBLE
         binding.btnAnswer.isEnabled = false
-        binding.btnRemember.setOnClickListener(null)
-        binding.btnDontRemember.setOnClickListener(null)
-
         if (isRemembered) { // Понижаем прозрачность, чтобы показать, что кнопка была нажата
             binding.btnDontRemember.isEnabled = false
             binding.btnRemember.alpha = 0.6f
@@ -109,7 +116,6 @@ class CardFragment : Fragment() {
             binding.btnRemember.isEnabled = false
             binding.btnDontRemember.alpha = 0.6f
         }
-
         binding.btnNext.isEnabled = true
     }
 
@@ -130,15 +136,63 @@ class CardFragment : Fragment() {
         }
     }
 
-    private fun nextBtnClick() {
-        viewModel.nextBtnClick(isRemembered)
+    private fun speakOut(text: String) {
+        textToSpeech?.let {
+            it.setPitch(0.6f) // Настройка высоты голоса (1.0 - нормальная высота, можно уменьшить или увеличить)
+            it.setSpeechRate(0.9f) // Настройка скорости речи (1.0 - нормальная скорость, можно уменьшить или увеличить)
+            // Установка мужского голоса, если он доступен
+            val availableVoices = it.voices
+            Log.d("CardFragment", "Доступные голоса: ${availableVoices.joinToString { voice -> voice.name }}")
+            val maleVoice = availableVoices.find { voice ->
+                voice.name.contains("male", ignoreCase = true)
+            }
+            if (maleVoice != null) {
+                it.voice = maleVoice
+            } else {
+                Log.d("CardFragment", "Мужской голос не найден, используется голос по умолчанию")
+            }
+            it.speak(text, TextToSpeech.QUEUE_FLUSH, null, "UniqueID")
+        }
     }
 
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech?.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("CardFragment", "Язык не поддерживается")
+            }
+
+            // Установка слушателя для контроля за прогрессом произношения
+            textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    Log.d("CardFragment", "Начало произношения")
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    Log.d("CardFragment", "Произношение завершено")
+                }
+
+                override fun onError(utteranceId: String?) {
+                    Log.e("CardFragment", "Ошибка при произношении")
+                }
+            })
+
+        } else {
+            Log.e("CardFragment", "Инициализация TTS не удалась")
+        }
+    }
+
+    override fun onDestroy() {
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        super.onDestroy()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
 
 }
 

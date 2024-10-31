@@ -61,16 +61,21 @@ class RepNote(private val noteDao: NoteDao) {
                 // Преобразуем Card в Note и добавляем в базу данных
                 val notes = cardSet.cards.map { card ->
                     Note(
-                        id = 0,  // или оставить autoGenerate, если это не используется
+                        id = card.id, // Используем ID из Firebase вместо 0
                         origin = card.title,
                         translate = card.description
                     )
                 }
 
-                // Добавляем все заметки в базу данных
+                // Добавляем все заметки в базу данных только если их ещё нет
                 notes.forEach { note ->
-                    noteDao.insert(note)
-                    Log.d("RepNote", "Заметка из Firebase добавлена: ${note.origin}, ${note.translate}")
+                    val existingNote = noteDao.getNoteById(note.id) // Проверяем наличие по ID
+                    if (existingNote == null) {
+                        noteDao.insert(note)
+                        Log.d("RepNote", "Заметка из Firebase добавлена: ${note.origin}, ${note.translate}")
+                    } else {
+                        Log.d("RepNote", "Заметка с ID: ${note.id} уже существует и не была добавлена")
+                    }
                 }
 
             } catch (e: Exception) {
@@ -78,26 +83,5 @@ class RepNote(private val noteDao: NoteDao) {
             }
         }
     }
-
-
-    //fake for test
-    suspend fun insertFakeNotes() {
-        withContext(Dispatchers.IO) {
-            val fakeNotes = getInitListNote()
-            fakeNotes.forEach { note ->
-                noteDao.insert(note)
-                Log.d("RepNote", "Фейковая заметка добавлена: ${note.origin}, ${note.translate}")
-            }
-        }
-    }
-
-    fun getInitListNote(): List<Note> {
-        return listOf(
-            Note(1, "Hello", "Привет"),
-            Note(2, "World", "Мир"),
-            Note(3, "Sun", "Солнце")
-        )
-    }
-
 
 }

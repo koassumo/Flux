@@ -11,6 +11,7 @@ import com.igo.fluxcard.model.entity.Note
 import com.igo.fluxcard.model.repository.RepNote
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -24,16 +25,20 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
     val note = MutableLiveData<Note>()
 
     // Список всех заметок, загруженных из базы данных
-    val noteList = MutableLiveData<List<Note>>()
+    val noteList = mutableListOf<Note>()
 
     private var currentNoteIndex = 0
 
     // Собственный IO Scope для работы с базой данных
     private val ioScope = CoroutineScope(Dispatchers.IO)
+    private var readLocalbaseJob_2: Job? = null
+    private var currentJob_3: Job? = null
+
 
     val imageUrl = MutableLiveData<String?>()
 
     init {
+        // БД и репозитории перенести в Dependency Injection (DI)!!!!
         // ViewModel использует параметр Application,
         // чтобы получить экземпляр БД через AppDatabase.getDatabase(application).
         // Далее, из базы данных (AppDatabase) получаем noteDao() - это объект DAO,
@@ -44,67 +49,47 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         imageRepository = RepImage()
 
         // Загружаем все заметки из базы данных один раз при инициализации
-        val initVMJob_0 = viewModelScope.launch {
+        viewModelScope.launch {
             Log.d("CardViewModel", "Загрузка фейковых данных в базу данных")
-            val loadFireJob_1 = launch {
-                repository.loadNotesFromFirebase()
-            }
-            loadFireJob_1.join()
+            repository.loadNotesFromFirebase()
             restartCycle()
         }
     }
 
     private suspend fun restartCycle() {
-        val loadLocalJob_2 = CoroutineScope(Dispatchers.IO).launch {
-            loadAllNotesFromLocal() // Загружаем все заметки заново
+        withContext(Dispatchers.IO) {
+            readLocalbaseAllNotes()
         }
-        loadLocalJob_2.join()
-        runNoteCycle()
+        withContext(Dispatchers.Main) {
+            runEveryNoteCycle()
+        }
     }
 
+
     // Загрузка всех заметок из БД
-    private suspend fun loadAllNotesFromLocal() {
-        val notes = repository.getAllNotes()
-        if (notes.isNotEmpty()) {
-            withContext(Dispatchers.Main) {//LiveData можно обновить только отсюда
-                noteList.value = notes
-                currentNoteIndex = 0
-                Log.d("CardViewModel", "Все заметки успешно загружены")
-            }
+    private suspend fun readLocalbaseAllNotes() {
+        val notesRowFromFirebase = repository.getAllNotes()
+        Log.d("CardViewModel", "Размер скаченного списка из БД: ${noteList.size}")
+        if (notesRowFromFirebase.isNotEmpty()) {
+            noteList.clear()
+            Log.d("CardViewModel", "Список очищен, текущий размер: ${noteList.size}")
+            noteList.addAll(notesRowFromFirebase)
+            currentNoteIndex = 0
+            Log.d("CardViewModel", "Все заметки успешно загружены, размер списка: ${noteList.size}")
         } else {
             Log.d("CardViewModel", "Нет доступных заметок для загрузки")
         }
     }
 
-    // Основной цикл работы с заметками
-    private suspend fun runNoteCycle() {
-        if (noteList.value.isNullOrEmpty()) {
-            Log.d("CardViewModel", "Нет доступных заметок для работы")
-            return
-        }
-        displayCurrentNote()
-        Log.d(
-            "CardViewModel",
-            "Ожидание действия пользователя для заметки с индексом: $currentNoteIndex"
-        )
-        // Ждём завершения обработки текущей заметки (пользователь нажимает кнопку)
+    private fun runEveryNoteCycle() {
+        // вывод на экран (liveData), включение слушателей во view
+        note.value = noteList[currentNoteIndex]
+        Log.d("CardViewModel", "Жду юзера для заметки с индексом: $currentNoteIndex")
     }
 
-    // Вывод текущей заметки по индексу на экран
-    private fun displayCurrentNote() {
-        noteList.value?.let {
-            if (currentNoteIndex in it.indices) {
-                note.value = it[currentNoteIndex]
-                Log.d("CardViewModel", "Загрузка заметки с индексом: $currentNoteIndex")
-//                searchImage(note.value?.origin ?: "") // Добавляем вызов функции поиска изображения
-            } else {
-                Log.d("CardViewModel", "Индекс вне диапазона: $currentNoteIndex")
-            }
-        }
-    }
 
     // Обработка нажатия кнопки "Запомнил" или "Не запомнил"
-    fun nextBtnClick(isRemembered: Boolean) {
+    fun writeLocalbase(isRemembered: Boolean) {
         if (isRemembered) {
             note.value?.let { currentNote ->
                 // 1. Создаем копию текущей заметки
@@ -120,33 +105,23 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
                         "Обновлена заметка: ${noteCopy.id}, Запомнена: $isRemembered"
                     )
                     repository.insertNote(noteCopy)
-                    // После записи продолжаем обработку, иначе не успевает записать последнюю в цикле
-                    withContext(Dispatchers.Main) {
-                        moveToNextNote()
-                    }
                 }
             }
         } else {
             // Пока ничего не делаем, оставлено для будущей обработки
-            // 3. К следующей заметке, не дожидаясь отработки корутины
-            moveToNextNote()
         }
-
     }
 
+
     // Переход к следующей заметке
-    private fun moveToNextNote() {
-        noteList.value?.let {
-            if (currentNoteIndex + 1 < it.size) {
+    fun moveToNextNote() {
+        viewModelScope.launch {
+            if (currentNoteIndex + 1 < noteList.size) {
                 currentNoteIndex++
-                viewModelScope.launch {
-                    runNoteCycle() // Загружаем следующую заметку через основной цикл
-                }
+                runEveryNoteCycle() // Загружаем следующую заметку через основной цикл
             } else {
                 Log.d("CardViewModel", "Все заметки просмотрены. Перезапуск цикла.")
-                viewModelScope.launch {
-                    restartCycle() // Перезапускаем цикл
-                }
+                restartCycle() // Перезапускаем цикл
             }
         }
     }
@@ -165,9 +140,9 @@ class CardViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun searchImage(query: String) {
+    fun searchImageUrl() {
         viewModelScope.launch {
-            val imageResult = imageRepository.getImage(query)
+            val imageResult = imageRepository.getImage(noteList[currentNoteIndex].origin)
             if (imageResult != null) {
                 imageUrl.value = imageResult.urls.regular
             } else {
