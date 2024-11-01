@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/i_packtrs_n"
+    style="@style/cv_item_vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout style="@style/constraint_cv">
+
+
+        <TextView
+            android:id="@+id/cv_title"
+            style="@style/cv_inside_title"
+            android:maxLines="1"
+            android:text="@string/txt_placeholder"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/line_one"
+            style="@style/cv_inside_text"
+            android:text="@string/cards"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cv_title" />
+
+        <TextView
+            android:id="@+id/line_one_value"
+            style="@style/cv_inside_text_value"
+            android:text="@string/txt_placeholder"
+            app:layout_constraintBottom_toBottomOf="@+id/line_one"
+            app:layout_constraintStart_toEndOf="@id/line_one"
+            app:layout_constraintTop_toTopOf="@id/line_one" />
+
+        <TextView
+            android:id="@+id/line_two"
+            style="@style/cv_inside_text"
+            android:text="@string/language"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/line_one" />
+
+        <TextView
+            android:id="@+id/line_two_value"
+            style="@style/cv_inside_text_value"
+            android:text="@string/txt_placeholder"
+            app:layout_constraintBottom_toBottomOf="@+id/line_two"
+            app:layout_constraintStart_toEndOf="@id/line_two"
+            app:layout_constraintTop_toTopOf="@id/line_two" />
+
+        <ImageButton
+            android:id="@+id/btn_download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/txt_placeholder"
+            android:src="@drawable/baseline_cloud_download_24"
+            android:scaleType="fitXY"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/i_packtrs_checkbox"
+            style="@style/checkbox_common"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</com.google.android.material.card.MaterialCardView>

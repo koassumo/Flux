@@ -78,6 +78,83 @@
     </style>
 
 
+
+    <!-- ******************************** Constraint ********************************-->
+    <style name="constraint_common">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:paddingBottom">@dimen/placeholder_bottom</item>
+    </style>
+
+    <style name="constraint_cv" parent="constraint_common">
+        <item name="android:paddingStart">@dimen/cv_padding_sides</item>
+        <item name="android:paddingEnd">@dimen/cv_padding_sides</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+
+
+
+
+    <!-- ******************************** CV ********************************-->
+
+    <style name="cv_common" >
+        <item name="cardCornerRadius">@dimen/cv_common_radius</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="cv_item_horizontal" parent="cv_common">
+        <item name="android:layout_marginBottom">@dimen/rv_horizontal_space</item>
+        <item name="cardBackgroundColor">@color/card_background</item>
+    </style>
+
+    <style name="cv_item_vertical" parent="cv_common">
+        <item name="android:layout_marginBottom">@dimen/rv_horizontal_space</item>
+        <item name="cardBackgroundColor">@color/yellow_300</item>
+    </style>
+
+
+
+    <style name="cv_inside_common">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+
+    <style name="cv_inside_title" parent="cv_inside_common">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/text_size_normal_plus</item>
+        <item name="android:textColor">@color/secondary_color</item>
+        <item name="android:layout_marginTop">@dimen/inside_margin_top</item>
+    </style>
+
+    <style name="cv_inside_text" parent="cv_inside_common">
+        <item name="android:textSize">@dimen/text_size_normal</item>
+        <item name="android:textColor">@color/secondary_color</item>
+        <item name="android:layout_marginTop">@dimen/inside_margin_top</item>
+    </style>
+
+    <style name="cv_inside_text_value" parent="cv_inside_common">
+        <item name="android:textSize">@dimen/text_size_normal</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginStart">@dimen/inside_margin_value</item>
+    </style>
+
+
+    <!-- ******************************** Check Box ********************************-->
+    <style name="checkbox_common" parent="all_common">
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:layout_marginEnd">@dimen/step_minus_small</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:padding">0dp</item>
+        <!-- Другие параметры стиля -->
+
+    </style>
+
+
     <!-- ******************************** Dummy ********************************-->
     <style name="ProgressSquare">
         <item name="android:layout_width">@dimen/progress_square_width</item>
@@ -85,6 +162,7 @@
         <item name="android:background">@drawable/progress_square_empty</item>
         <item name="android:layout_marginStart">@dimen/progress_square_margin_start</item>
     </style>
+
 
 </resources>
 

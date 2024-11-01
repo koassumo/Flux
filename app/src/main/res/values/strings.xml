@@ -6,4 +6,6 @@
     <string name="don_t_remember">Don\'t Remember</string>
     <string name="next">Next</string>
     <string name="image_desc">hint</string>
+    <string name="cards">Cards: </string>
+    <string name="language">"Language: "</string>
 </resources>

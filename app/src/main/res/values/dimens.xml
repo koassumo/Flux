@@ -8,7 +8,6 @@
 
     <dimen name="card_small_padding">6dp</dimen>
     <dimen name="card_medium_padding">12dp</dimen>
-    <dimen name="card_large_padding">20dp</dimen>
     <dimen name="card_title_top">24dp</dimen>
     <dimen name="card_title_little_top">10dp</dimen>
     <dimen name="card_text_under_top">4dp</dimen>
@@ -35,6 +34,17 @@
     <dimen name="fab_margin_bottom">80dp</dimen>
     <dimen name="fab_margin_end">24dp</dimen>
 
+
+    <!-- ************************  CV  ********************************  -->
+    <dimen name="cv_common_radius">12dp</dimen>
+    <dimen name="cv_medium_padding">12dp</dimen>
+    <dimen name="cv_padding_sides">20dp</dimen>
+    <dimen name="cv_title_top">24dp</dimen>
+
+
+    <dimen name="inside_margin_top">8dp</dimen>
+    <dimen name="inside_margin_value">4dp</dimen>
+
     <!-- ************************  Text  ********************************  -->
     <dimen name="txt_small_margin_top">4dp</dimen>
 
@@ -42,15 +52,18 @@
 
     <dimen name="text_size_appbar">20sp</dimen>
     <dimen name="text_size_banner">32sp</dimen>
-    <dimen name="text_size_title">16sp</dimen>
-    <dimen name="text_size_large">18sp</dimen>
-    <dimen name="text_size_normal_plus">16sp</dimen>
-    <dimen name="text_size_normal">24sp</dimen>
-    <dimen name="text_size_small">10sp</dimen>
+    <dimen name="text_size_title">32sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="text_size_normal_plus">20sp</dimen>
+    <dimen name="text_size_normal">16sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+
+    <dimen name="step_minus_small">-6dp</dimen>
+
 
     <!-- ***********************  Others  ********************************  -->
 
-    <dimen name="placeholder_bottom">300dp</dimen>
+    <dimen name="placeholder_bottom">200dp</dimen>
 
     <dimen name="progress_square_width">24dp</dimen>
     <dimen name="progress_square_height">24dp</dimen>
