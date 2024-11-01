@@ -10,6 +10,8 @@ plugins {
     id("kotlin-kapt")
     id("com.google.gms.google-services")
     //id("com.google.devtools.ksp")
+    // для save arg в navigator
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 // for api_key 2 из 4
@@ -92,7 +94,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // Import the Firebase BoM
+    // Настройка Firebase 3 из 5. См. также корневой градл и google-services.json в app/ проекта.
+    // Инициализация идет автоматически (если нет - то надо вручную в myApplication)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
@@ -112,7 +115,8 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
     kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
 
-
     implementation ("io.insert-koin:koin-android:4.0.0")
 
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.3")
 }

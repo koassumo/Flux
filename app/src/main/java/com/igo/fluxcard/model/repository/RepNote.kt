@@ -44,6 +44,7 @@ class RepNote(private val noteDao: NoteDao) {
         }
     }
 
+    // Настройка Firebase 5 из 5.
     suspend fun loadNotesFromFirebase() {
         withContext(Dispatchers.IO) {
             try {
