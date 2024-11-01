@@ -1,28 +1,26 @@
 package com.igo.fluxcard.ui.card
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import coil.load
 import com.igo.fluxcard.R
 import com.igo.fluxcard.databinding.FragmentCardBinding
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Locale
 
-class CardFragment : Fragment() {
+class CardFragment : Fragment(), TextToSpeech.OnInitListener {
 
-    // Используем by viewModels для упрощенного создания ViewModel
-    // Делегат by viewModels() автоматически привязывает ViewModel к Fragment
-    // и следит за жизненным циклом фрагмента
-    private val viewModel: CardViewModel by viewModels {
-        ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
-    }
+
+    // Используем Koin для внедрения ViewModel
+    private val viewModel: CardViewModel by viewModel()
+
+
 
     private var _binding: FragmentCardBinding? = null
     private val binding get() = _binding!!
@@ -31,7 +29,9 @@ class CardFragment : Fragment() {
         fun newInstance() = CardFragment()
     }
 
-    var isRemembered = false
+    private var isRemembered = false
+
+    private var textToSpeech: TextToSpeech? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,78 +44,65 @@ class CardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.webView.visibility = View.INVISIBLE // Скрываем WebView вначале
-        binding.webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            loadWithOverviewMode = true
-            useWideViewPort = true
-        }
-        binding.webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                // Прокрутка вниз, чтобы игнорировать шапку
-                binding.webView.scrollTo(0, 900) // Значение 500 можно настроить в зависимости от страницы
-                // Добавляем плавное появление после скроллинга
-                Handler(Looper.getMainLooper()).postDelayed({
-                    // Устанавливаем видимость и начинаем анимацию плавного появления
-                    binding.webView.alpha = 0f
-                    binding.webView.animate()
-                        .alpha(0.3f)
-                        .setDuration(1000) // Длительность анимации в миллисекундах
-                        .start()
-                    binding.webView.visibility = View.VISIBLE
-                }, 1000) // Задержка в 500 мс, чтобы завершить прокрутку
-            }
-        }
+
+        // Инициализация TextToSpeech
+        textToSpeech = TextToSpeech(requireContext(), this)
 
         // Наблюдаем за изменениями данных в ViewModel
-        viewModel.note.observe(viewLifecycleOwner, Observer { note ->
-            binding.webView.visibility = View.INVISIBLE // Скрываем WebView вначале
-            // По умолчанию скрываем перевод
-            binding.textTranslate.visibility = View.INVISIBLE
-            binding.textOrigin.text = note.origin
-            binding.textTranslate.text = note.translate
+        viewModel.note.observe(viewLifecycleOwner) { note ->
+            binding.textStreak.text = note.correctStreak.toString()
             updateProgressSquares(note.correctStreak)
+            binding.textOrigin.text = note.origin
+            binding.textTranslate.visibility = View.INVISIBLE
+            binding.textTranslate.text = note.translate
+            binding.imageView.setImageDrawable(null)
+            binding.imageView.visibility = View.INVISIBLE
             binding.btnAnswer.isEnabled = true
             binding.btnRemember.isEnabled = true
             binding.btnRemember.alpha = 1f
             binding.btnDontRemember.isEnabled = true
             binding.btnDontRemember.alpha = 1f
             //binding.btnNext.isEnabled = false
-
             isRemembered = false
-            binding.btnRemember.setOnClickListener {
-                isRemembered = true
-                updateRememberedBtnClick()
-            }
-            binding.btnDontRemember.setOnClickListener {
-                isRemembered = false
-                updateRememberedBtnClick()
-            }
 
-        })
+            speakOut(note.origin)
+
+        }
+
 
         binding.btnAnswer.setOnClickListener {
             binding.textTranslate.visibility = View.VISIBLE
-//            binding.webView.loadUrl("https://www.google.com/search?tbm=isch&q=" + binding.textOrigin.text)
-            binding.webView.loadUrl("https://yandex.com/images/search?text=" + binding.textOrigin.text)
             binding.btnAnswer.isEnabled = false
+            viewModel.searchImageUrl()
+            binding.imageView.visibility = View.VISIBLE
+        }
+        binding.btnRemember.setOnClickListener {
+            isRemembered = true
+            updateRememberedBtnClick()
+            viewModel.writeLocalbase(isRemembered)
+        }
+        binding.btnDontRemember.setOnClickListener {
+            isRemembered = false
+            updateRememberedBtnClick()
+            viewModel.writeLocalbase(isRemembered)
         }
 
-        binding.btnNext.setOnClickListener { nextBtnClick() }
+        binding.btnNext.setOnClickListener {
+            viewModel.moveToNextNote()
+        }
 
-        binding.fab.setOnClickListener {
-            //toastCheckDataBase()
+        viewModel.imageUrl.observe(viewLifecycleOwner) { imageUrl ->
+            if (imageUrl != null) {
+                binding.imageView.load(imageUrl)
+            } else {
+                Log.d("CardFragment", "Не удалось загрузить изображение")
+            }
         }
     }
 
     private fun updateRememberedBtnClick() {
         binding.textTranslate.visibility = View.VISIBLE
         binding.btnAnswer.isEnabled = false
-        binding.btnRemember.setOnClickListener(null)
-        binding.btnDontRemember.setOnClickListener(null)
-
         if (isRemembered) { // Понижаем прозрачность, чтобы показать, что кнопка была нажата
             binding.btnDontRemember.isEnabled = false
             binding.btnRemember.alpha = 0.6f
@@ -123,7 +110,6 @@ class CardFragment : Fragment() {
             binding.btnRemember.isEnabled = false
             binding.btnDontRemember.alpha = 0.6f
         }
-
         binding.btnNext.isEnabled = true
     }
 
@@ -144,45 +130,64 @@ class CardFragment : Fragment() {
         }
     }
 
-    private fun nextBtnClick() {
-        viewModel.nextBtnClick(isRemembered)
+    private fun speakOut(text: String) {
+        textToSpeech?.let {
+            it.setPitch(0.6f) // Настройка высоты голоса (1.0 - нормальная высота, можно уменьшить или увеличить)
+            it.setSpeechRate(0.9f) // Настройка скорости речи (1.0 - нормальная скорость, можно уменьшить или увеличить)
+            // Установка мужского голоса, если он доступен
+            val availableVoices = it.voices
+            Log.d("CardFragment", "Доступные голоса: ${availableVoices.joinToString { voice -> voice.name }}")
+            val maleVoice = availableVoices.find { voice ->
+                voice.name.contains("male", ignoreCase = true)
+            }
+            if (maleVoice != null) {
+                it.voice = maleVoice
+            } else {
+                Log.d("CardFragment", "Мужской голос не найден, используется голос по умолчанию")
+            }
+            it.speak(text, TextToSpeech.QUEUE_FLUSH, null, "UniqueID")
+        }
     }
 
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = textToSpeech?.setLanguage(Locale.US)
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("CardFragment", "Язык не поддерживается")
+            }
+
+            // Установка слушателя для контроля за прогрессом произношения
+            textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    Log.d("CardFragment", "Начало произношения")
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    Log.d("CardFragment", "Произношение завершено")
+                }
+
+                override fun onError(utteranceId: String?) {
+                    Log.e("CardFragment", "Ошибка при произношении")
+                }
+            })
+
+        } else {
+            Log.e("CardFragment", "Инициализация TTS не удалась")
+        }
+    }
+
+    override fun onDestroy() {
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        super.onDestroy()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
+
 }
 
-
-//    private fun toastCheckDataBase() {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val notes = viewModel.noteList.value ?: emptyList()
-//            withContext(Dispatchers.Main) {
-//                val message = if (notes.isNotEmpty()) {
-//                    notes.joinToString(separator = "\n\n") {
-//                        "ID: ${it.id}, Origin: ${it.origin}, Translate: ${it.translate}, Correct Streak: ${it.correctStreak}, Last Shown: ${it.lastShownTimestamp}, ShowFirst: ${it.showFirst}, ShowSecond: ${it.showSecond}, ShowThird: ${it.showThird}, ShowFourth: ${it.showFourth}, ShowFifth: ${it.showFifth}, ShowFirstTimestamp: ${it.showFirstTimestamp}, ShowSecondTimestamp: ${it.showSecondTimestamp}, ShowThirdTimestamp: ${it.showThirdTimestamp}, ShowFourthTimestamp: ${it.showFourthTimestamp}, ShowFifthTimestamp: ${it.showFifthTimestamp}"
-//                    }
-//                } else {
-//                    "База данных пуста"
-//                }
-//                val toast = Toast.makeText(
-//                    requireContext(),
-//                    message,
-//                    Toast.LENGTH_LONG * 55
-//                ) // Увеличиваем время отображения тоста в 5 раз
-//                val textView = TextView(requireContext()).apply {
-//                    text = message
-//                    textSize = 8f // Уменьшаем размер шрифта в два раза
-//                    gravity = Gravity.CENTER
-//                    setPadding(16, 16, 16, 16)
-//                }
-//                toast.view = textView
-//                toast.setGravity(Gravity.FILL, 0, 0)
-//                toast.show()
-//            }
-//        }
-//    }
 

@@ -1,3 +1,9 @@
+// apikey в apikey.proporties в формате splash_apikey=Dz......cwo (без ковычек!)
+// uses-permission в манифест
+// for api_key 1 из 4
+import com.android.build.api.dsl.Packaging
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +11,11 @@ plugins {
     id("com.google.gms.google-services")
     //id("com.google.devtools.ksp")
 }
+
+// for api_key 2 из 4
+val apikeyPropertiesFile = rootProject.file("apikey.properties")
+val apikeyProperties = Properties()
+apikeyProperties.load(apikeyPropertiesFile.inputStream())
 
 android {
     namespace = "com.igo.fluxcard"
@@ -18,6 +29,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // for api_key 3 из 4
+        buildConfigField(
+            "String",
+            "SPLASH_API_KEY",
+            "\"${apikeyProperties.getProperty("splash_apikey")}\""
+        )
+    }
+
+    // for api_key 4 из 4
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -40,6 +63,7 @@ android {
     viewBinding {
         enable = true
     }
+
 }
 
 dependencies {
@@ -70,8 +94,6 @@ dependencies {
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-
-
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
@@ -81,5 +103,16 @@ dependencies {
 
     // Gson для преобразования JSON в объекты
     implementation("com.google.code.gson:gson:2.9.0")
+
+    implementation("io.coil-kt:coil:2.1.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.moshi:moshi:1.15.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
+
+
+    implementation ("io.insert-koin:koin-android:4.0.0")
 
 }

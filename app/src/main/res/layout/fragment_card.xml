@@ -6,14 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".ui.card.CardFragment">
 
-    <WebView
-        android:id="@+id/webView"
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="-200dp"
-
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/image_desc"
         />
-
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollView"
@@ -57,6 +56,12 @@
                     android:id="@+id/progress_5"
                     style="@style/ProgressSquare" />
             </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_streak"
+                style="@style/txt_common"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/text_origin"
@@ -114,15 +119,5 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Добавляем Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="db"
-        app:layout_anchor="@id/nestedScrollView"
-        app:layout_anchorGravity="bottom|end"
-        app:backgroundTint="@color/black" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
